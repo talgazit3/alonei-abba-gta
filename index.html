@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>אלוני אבא 3D - מובייל מתוקן</title>
+    <title>אלוני אבא 3D - דמויות מעוצבות</title>
     <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #090d16; font-family: 'Segoe UI', system-ui, sans-serif; touch-action: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: 'Segoe UI', system-ui, sans-serif; touch-action: none; }
 
-        /* מסך בחירת דמויות */
+        /* מסך בחירת דמות */
         #char-select {
             position: absolute; inset: 0;
             background: radial-gradient(circle, rgba(30,41,59,0.98) 0%, rgba(15,23,42,0.99) 100%);
@@ -16,31 +16,37 @@
             z-index: 300; color: white; direction: rtl; padding: 20px;
         }
         #char-select h1 { font-size: 2.2rem; margin-bottom: 8px; color: #38bdf8; text-shadow: 0 0 15px rgba(56,189,248,0.4); text-align: center; }
-        #char-select p { font-size: 1rem; color: #94a3b8; margin-bottom: 25px; }
+        #char-select p { font-size: 0.95rem; color: #94a3b8; margin-bottom: 25px; text-align: center; }
         .char-grid { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
         .char-card {
             background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px; padding: 15px; text-align: center; cursor: pointer;
-            transition: all 0.25s ease; width: 140px; position: relative; overflow: hidden;
+            transition: all 0.25s ease; width: 180px; display: flex; flex-direction: column; align-items: center;
         }
-        .char-card:active, .char-card:hover { transform: scale(1.05); border-color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
-        .char-avatar { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .char-card h3 { font-size: 1rem; margin: 5px 0 2px; color: #f8fafc; }
-        .char-card span { font-size: 0.75em; color: #38bdf8; font-weight: bold; }
+        .char-card:hover { transform: translateY(-5px); border-color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
+        .char-card h3 { font-size: 1.1rem; margin: 5px 0 2px; color: #f8fafc; }
+        .char-card span { font-size: 0.8em; color: #38bdf8; font-weight: bold; margin-bottom: 12px; }
+        .char-desc { font-size: 0.75rem; color: #94a3b8; margin-bottom: 15px; line-height: 1.3; }
+        
+        .start-btn {
+            width: 100%; padding: 10px; background: #0284c7; color: white;
+            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .start-btn:hover { background: #0369a1; }
 
-        /* ממשק במשחק (UI) */
+        /* ממשק במשחק */
         #game-ui { position: absolute; inset: 0; pointer-events: none; z-index: 100; display: none; }
         
         .header-card {
             position: absolute; top: 15px; right: 15px;
-            background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px);
             padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.15);
             color: white; direction: rtl; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         .header-card h2 { margin: 0; font-size: 1rem; color: #38bdf8; }
-        .header-card div { font-size: 0.8rem; color: #cbd5e1; margin-top: 2px; }
+        .header-card div { font-size: 0.85rem; color: #cbd5e1; margin-top: 2px; }
 
-        /* ג'ויסטיק ויירטואלי לשמאל */
+        /* ג'ויסטיק */
         #joystick-zone {
             position: absolute; bottom: 30px; left: 30px;
             width: 120px; height: 120px; background: rgba(255, 255, 255, 0.12);
@@ -54,21 +60,19 @@
             box-shadow: 0 0 15px rgba(56,189,248,0.6); pointer-events: none;
         }
 
-        /* אזור מגע מימין לסיבוב המצלמה */
         #touch-camera-zone {
             position: absolute; top: 0; right: 0; width: 50%; height: 100%;
             pointer-events: auto; touch-action: none; z-index: 90;
         }
 
-        /* מפה קטנה */
         #minimap {
             position: absolute; top: 15px; left: 15px;
             width: 80px; height: 80px; border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.3); background: rgba(15,23,42,0.85);
-            overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); pointer-events: none;
+            overflow: hidden; pointer-events: none;
         }
         #minimap-player {
-            position: absolute; top: 50%; left: 50%; width: 7px; height: 7px;
+            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
             background: #ef4444; border-radius: 50%; transform: translate(-50%, -50%);
             box-shadow: 0 0 8px #ef4444;
         }
@@ -80,6 +84,7 @@
             pointer-events: none; white-space: nowrap;
         }
     </style>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
@@ -87,22 +92,31 @@
     <!-- מסך בחירת דמות -->
     <div id="char-select">
         <h1>אלוני אבא 3D</h1>
-        <p>בחר את הדמות שלך כדי להיכנס לעולם</p>
+        <p>בחר את הדמות שלך למשחק</p>
+        
         <div class="char-grid">
-            <div class="char-card" onclick="startGame('tal')">
-                <div class="char-avatar" style="background: #ea580c;">👨‍🦰</div>
+            <!-- חרבצ -->
+            <div class="char-card">
                 <h3>טל גזית</h3>
                 <span>חרבצ</span>
+                <div class="char-desc">ג'ינג'י-בלונדיני, עגיל יהלום, שרשרת כסף, גשר, שרירי וכפכפי בירקנשטוק</div>
+                <button class="start-btn" onclick="startGame('harbatz')">שחק בתור חרבצ</button>
             </div>
-            <div class="char-card" onclick="startGame('ido')">
-                <div class="char-avatar" style="background: #1e293b;">👦</div>
+
+            <!-- דויץ -->
+            <div class="char-card">
                 <h3>עידו דויץ</h3>
                 <span>דויץ</span>
+                <div class="char-desc">גבוה וארוך, שיער שחור, שפם קל, בגדי נייקי ונעלי אסיקס</div>
+                <button class="start-btn" onclick="startGame('doitch')">שחק בתור דויץ</button>
             </div>
-            <div class="char-card" onclick="startGame('oz')">
-                <div class="char-avatar" style="background: #16a34a;">🧒</div>
+
+            <!-- עוז -->
+            <div class="char-card">
                 <h3>עוז</h3>
                 <span>קופמן</span>
+                <div class="char-desc">נמוך, שיער שחור בתסרוקת פטרייה, עיניים שחורות וגשר בשיניים</div>
+                <button class="start-btn" onclick="startGame('oz')">שחק בתור עוז</button>
             </div>
         </div>
     </div>
@@ -115,7 +129,7 @@
         </div>
 
         <div id="instructions-bar">
-            ג'ויסטיק משמאל לתנועה | החלקת אצבע מימין לסיבוב מצלמה
+            ג'ויסטיק / WASD לתנועה | החלקת מסך מימין לסיבוב מצלמה
         </div>
 
         <div id="joystick-zone"><div id="joystick-knob"></div></div>
@@ -125,21 +139,20 @@
 
     <script>
         let scene, camera, renderer;
-        let playerGroup, leftLeg, rightLeg, leftArm, rightArm;
-        let walkTime = 0;
+        let playerGroup;
+        const clock = new THREE.Clock();
 
-        // מצלמה ותנועה
+        // בקרת מצלמה ותנועה
         let cameraAngleX = 0, cameraAngleY = 0.35;
         const keys = {};
         let moveVector = { x: 0, z: 0 };
 
-        // ג'ויסטיק טאץ'
+        // ג'ויסטיק וטאץ'
         let joystickActive = false;
         let joyTouchId = null;
         const joyZone = document.getElementById('joystick-zone');
         const joyKnob = document.getElementById('joystick-knob');
 
-        // סיבוב מצלמה בטאץ'
         let cameraTouchId = null;
         let lastTouchX = 0, lastTouchY = 0;
         const touchCamZone = document.getElementById('touch-camera-zone');
@@ -147,7 +160,7 @@
         function init() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xbae6fd);
-            scene.fog = new THREE.FogExp2(0xbae6fd, 0.012);
+            scene.fog = new THREE.FogExp2(0xbae6fd, 0.01);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             
@@ -164,54 +177,36 @@
         }
 
         function setupLighting() {
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambient);
 
-            const sun = new THREE.DirectionalLight(0xfff7ed, 0.9);
-            sun.position.set(60, 80, 40);
+            const sun = new THREE.DirectionalLight(0xfff7ed, 1.1);
+            sun.position.set(50, 80, 40);
             sun.castShadow = true;
-            sun.shadow.mapSize.width = 1024;
-            sun.shadow.mapSize.height = 1024;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
             scene.add(sun);
         }
 
         function buildWorld() {
-            // דשא
-            const groundGeo = new THREE.PlaneGeometry(250, 250);
+            const groundGeo = new THREE.PlaneGeometry(300, 300);
             const groundMat = new THREE.MeshStandardMaterial({ color: 0x4ad66d, roughness: 0.9 });
             const ground = new THREE.Mesh(groundGeo, groundMat);
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             scene.add(ground);
 
-            // שביל אספלט מרכזי
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-            const road = new THREE.Mesh(new THREE.PlaneGeometry(16, 200), roadMat);
+            const road = new THREE.Mesh(new THREE.PlaneGeometry(16, 250), roadMat);
             road.rotation.x = -Math.PI / 2;
             road.position.y = 0.02;
             road.receiveShadow = true;
             scene.add(road);
 
-            // מבנים
-            buildHouse(25, 0, -20, 0xdfe7f2);
-            buildHouse(-25, 0, -10, 0xfef3c7);
-
-            // עצים
-            for (let z = -80; z <= 80; z += 25) {
+            for (let z = -100; z <= 100; z += 30) {
                 createTree(-14, z);
-                createTree(14, z + 12);
+                createTree(14, z + 15);
             }
-        }
-
-        function buildHouse(x, y, z, colorHex) {
-            const group = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 12), new THREE.MeshStandardMaterial({ color: colorHex }));
-            body.position.y = 4; body.castShadow = true; body.receiveShadow = true;
-            const roof = new THREE.Mesh(new THREE.ConeGeometry(12, 5, 4), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
-            roof.position.y = 10.5; roof.rotation.y = Math.PI / 4; roof.castShadow = true;
-            group.add(body, roof);
-            group.position.set(x, y, z);
-            scene.add(group);
         }
 
         function createTree(x, z) {
@@ -225,44 +220,192 @@
             scene.add(tree);
         }
 
+        // ==========================================================
+        // 🧍 יצירת דמות תלת-ממדית מפורטת ומציאותית
+        // ==========================================================
         function createCharacter(type) {
             if (playerGroup) scene.remove(playerGroup);
+
             playerGroup = new THREE.Group();
 
-            let shirtColor = 0x2563eb, hairColor = 0x1e293b, scaleY = 1;
-            if (type === 'tal') { shirtColor = 0x16a34a; hairColor = 0xea580c; }
-            else if (type === 'ido') { shirtColor = 0x0284c7; hairColor = 0x0f172a; scaleY = 1.15; }
-            else if (type === 'oz') { shirtColor = 0x9333ea; hairColor = 0x451a03; scaleY = 0.85; }
+            // חומרים נפוצים
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.6 });
+            const blackHairMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+            const gingerHairMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.8 }); // בלונדיני-ג'ינג'י
+            const silverMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
+            const diamondMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, metalness: 0.1, roughness: 0.1, emissive: 0x88ffff });
 
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xfde047 });
-            const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColor });
-            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-            const hairMat = new THREE.MeshStandardMaterial({ color: hairColor });
+            // פרופורציות לפי דמות
+            let scaleY = 1.0;
+            let muscleScale = 1.0;
 
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6 * scaleY, 0.7), shirtMat);
-            torso.position.y = 1.6 * scaleY; torso.castShadow = true; playerGroup.add(torso);
+            if (type === 'doitch') scaleY = 1.25;  // גבוה וארוך
+            if (type === 'oz') scaleY = 0.85;      // נמוך
+            if (type === 'harbatz') muscleScale = 1.25; // שרירי
 
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), skinMat);
-            head.position.y = 2.85 * scaleY; head.castShadow = true; playerGroup.add(head);
+            // --- 1. גוף / חזה (Torso) ---
+            let shirtColor = 0x2563eb; // כחול ברירת מחדל
+            if (type === 'doitch') shirtColor = 0x111827; // נייקי שחור
+            if (type === 'oz') shirtColor = 0xd97706; // כתום/חום
 
-            const hair = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.35, 0.96), hairMat);
-            hair.position.y = 3.3 * scaleY; playerGroup.add(hair);
+            const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.7 });
+            const chestGeo = new THREE.CylinderGeometry(0.45 * muscleScale, 0.35, 1.2, 16);
+            const chest = new THREE.Mesh(chestGeo, shirtMat);
+            chest.position.y = 1.5 * scaleY;
+            chest.castShadow = true;
+            playerGroup.add(chest);
 
-            const legGeo = new THREE.BoxGeometry(0.42, 1.2 * scaleY, 0.42);
-            leftLeg = new THREE.Mesh(legGeo, pantsMat); leftLeg.position.set(-0.28, 0.6 * scaleY, 0);
-            leftLeg.geometry.translate(0, -0.3 * scaleY, 0); leftLeg.castShadow = true;
+            // סמל נייקי לדויץ בחזה
+            if (type === 'doitch') {
+                const swooshGeo = new THREE.TorusGeometry(0.1, 0.02, 8, 16, Math.PI);
+                const swoosh = new THREE.Mesh(swooshGeo, new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                swoosh.position.set(0, 1.7 * scaleY, 0.42);
+                swoosh.rotation.z = -Math.PI / 4;
+                playerGroup.add(swoosh);
+            }
 
-            rightLeg = new THREE.Mesh(legGeo, pantsMat); rightLeg.position.set(0.28, 0.6 * scaleY, 0);
-            rightLeg.geometry.translate(0, -0.3 * scaleY, 0); rightLeg.castShadow = true;
+            // --- 2. שרשרת כסף לחרבצ ---
+            if (type === 'harbatz') {
+                const necklaceGeo = new THREE.TorusGeometry(0.28, 0.02, 8, 20);
+                const necklace = new THREE.Mesh(necklaceGeo, silverMat);
+                necklace.position.set(0, 1.95 * scaleY, 0);
+                necklace.rotation.x = Math.PI / 2.5;
+                playerGroup.add(necklace);
+            }
 
-            const armGeo = new THREE.BoxGeometry(0.32, 1.2 * scaleY, 0.32);
-            leftArm = new THREE.Mesh(armGeo, shirtMat); leftArm.position.set(-0.75, 2.1 * scaleY, 0);
-            leftArm.geometry.translate(0, -0.3 * scaleY, 0); leftArm.castShadow = true;
+            // --- 3. צוואר וראש (Head) ---
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.3), skinMat);
+            neck.position.y = 2.15 * scaleY;
+            playerGroup.add(neck);
 
-            rightArm = new THREE.Mesh(armGeo, shirtMat); rightArm.position.set(0.75, 2.1 * scaleY, 0);
-            rightArm.geometry.translate(0, -0.3 * scaleY, 0); rightArm.castShadow = true;
+            const headGeo = new THREE.SphereGeometry(0.42, 32, 32);
+            headGeo.scale(1, 1.15, 1); // אליפסת ראש אנושית
+            const head = new THREE.Mesh(headGeo, skinMat);
+            head.position.y = 2.55 * scaleY;
+            head.castShadow = true;
+            playerGroup.add(head);
 
-            playerGroup.add(leftLeg, rightLeg, leftArm, rightArm);
+            // --- 4. תווי פנים (עיניים, גשר, שפם) ---
+            // עיניים
+            let eyeColor = 0x222222;
+            if (type === 'harbatz') eyeColor = 0x2dd4bf; // ירוק-כחול
+            if (type === 'doitch') eyeColor = 0x543d2b;  // חום
+            if (type === 'oz') eyeColor = 0x050505;      // שחור
+
+            const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
+            const whiteEyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            [-0.13, 0.13].forEach(xOffset => {
+                const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), whiteEyeMat);
+                eyeWhite.position.set(xOffset, 2.62 * scaleY, 0.36);
+                const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 16), eyeMat);
+                pupil.position.set(xOffset, 2.62 * scaleY, 0.42);
+                playerGroup.add(eyeWhite, pupil);
+            });
+
+            // גשר בשיניים (חרבצ + עוז)
+            if (type === 'harbatz' || type === 'oz') {
+                const teethMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 0.02), teethMat);
+                teeth.position.set(0, 2.44 * scaleY, 0.41);
+
+                const braceWire = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.015, 0.03), silverMat);
+                braceWire.position.set(0, 2.44 * scaleY, 0.42);
+                playerGroup.add(teeth, braceWire);
+            }
+
+            // שפם לדויץ
+            if (type === 'doitch') {
+                const stache = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.04), blackHairMat);
+                stache.position.set(0, 2.47 * scaleY, 0.42);
+                playerGroup.add(stache);
+            }
+
+            // עגיל יהלום באוזן שמאל לחרבצ
+            if (type === 'harbatz') {
+                const earring = new THREE.Mesh(new THREE.OctahedronGeometry(0.04), diamondMat);
+                earring.position.set(-0.44, 2.55 * scaleY, 0); // אוזן שמאל
+                playerGroup.add(earring);
+            }
+
+            // --- 5. שיער ---
+            if (type === 'harbatz') {
+                // שיער ג'ינג'י-בלונדיני קצוץ מתולתל
+                const hairGroup = new THREE.Group();
+                for (let i = 0; i < 25; i++) {
+                    const hairPuff = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12), gingerHairMat);
+                    hairPuff.position.set(
+                        (Math.random() - 0.5) * 0.6,
+                        2.85 * scaleY + (Math.random() * 0.15),
+                        (Math.random() - 0.5) * 0.6
+                    );
+                    hairGroup.add(hairPuff);
+                }
+                playerGroup.add(hairGroup);
+            } else if (type === 'oz') {
+                // תסרוקת פטרייה שחורה וחלקה
+                const mushroomHairGeo = new THREE.SphereGeometry(0.48, 32, 16, 0, Math.PI * 2, 0, Math.PI / 1.8);
+                const mushroomHair = new THREE.Mesh(mushroomHairGeo, blackHairMat);
+                mushroomHair.position.y = 2.65 * scaleY;
+                playerGroup.add(mushroomHair);
+            } else {
+                // שיער רגיל שחור (דויץ)
+                const hair = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), blackHairMat);
+                hair.position.set(0, 2.75 * scaleY, -0.05);
+                playerGroup.add(hair);
+            }
+
+            // --- 6. זרועות וידיים (Arms) ---
+            const armMat = (type === 'harbatz') ? skinMat : shirtMat; // חרבצ בלי שרוולים/שרירי
+            [-1, 1].forEach(side => {
+                const armGeo = new THREE.CylinderGeometry(0.12 * muscleScale, 0.1 * muscleScale, 0.9);
+                const arm = new THREE.Mesh(armGeo, armMat);
+                arm.position.set(side * (0.55 * muscleScale), 1.4 * scaleY, 0);
+                arm.castShadow = true;
+                playerGroup.add(arm);
+
+                // כף יד
+                const hand = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 12), skinMat);
+                hand.position.set(side * (0.55 * muscleScale), 0.85 * scaleY, 0);
+                playerGroup.add(hand);
+            });
+
+            // --- 7. מכנסיים ורגליים (Legs) ---
+            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            [-1, 1].forEach(side => {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 1.0 * scaleY), pantsMat);
+                leg.position.set(side * 0.22, 0.5 * scaleY, 0);
+                leg.castShadow = true;
+                playerGroup.add(leg);
+            });
+
+            // --- 8. נעליים / כפכפים ---
+            [-1, 1].forEach(side => {
+                if (type === 'harbatz') {
+                    // כפכפי אצבע Birkenstock לבנות
+                    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.38), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    shoe.position.set(side * 0.22, 0.04, 0.08);
+                    
+                    // רצועות כפכף
+                    const strap = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.12), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+                    strap.position.set(side * 0.22, 0.09, 0.06);
+                    playerGroup.add(shoe, strap);
+                } else if (type === 'doitch') {
+                    // נעלי Asics מעוצבות
+                    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.42), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+                    shoe.position.set(side * 0.22, 0.07, 0.08);
+
+                    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.03, 0.2), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    stripe.position.set(side * 0.22, 0.08, 0.08);
+                    playerGroup.add(shoe, stripe);
+                } else {
+                    // נעלי ספורט שחורות (עוז)
+                    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.35), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+                    shoe.position.set(side * 0.22, 0.06, 0.06);
+                    playerGroup.add(shoe);
+                }
+            });
+
             playerGroup.position.set(0, 0, 10);
             scene.add(playerGroup);
         }
@@ -272,16 +415,14 @@
             document.getElementById('char-select').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
 
-            const names = { 'tal': 'טל גזית (חרבצ)', 'ido': 'עידו דויץ (דויץ)', 'oz': 'עוז (קופמן)' };
+            const names = { 'harbatz': 'טל גזית (חרבצ)', 'doitch': 'עידו דויץ (דויץ)', 'oz': 'עוז (קופמן)' };
             document.getElementById('player-label').innerText = 'דמות: ' + names[type];
         }
 
         function setupEvents() {
-            // מקלדת למחשב
             window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
             window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-            // --- טיפול בג'ויסטיק (שמאל) ---
             joyZone.addEventListener('touchstart', e => {
                 e.preventDefault();
                 const touch = e.changedTouches[0];
@@ -290,7 +431,6 @@
                 updateJoystick(touch);
             }, { passive: false });
 
-            // --- טיפול בסיבוב מצלמה (ימין) ---
             touchCamZone.addEventListener('touchstart', e => {
                 e.preventDefault();
                 const touch = e.changedTouches[0];
@@ -299,7 +439,6 @@
                 lastTouchY = touch.clientY;
             }, { passive: false });
 
-            // --- תנועה משותפת לטאץ' ---
             window.addEventListener('touchmove', e => {
                 for (let touch of e.changedTouches) {
                     if (joystickActive && touch.identifier === joyTouchId) {
@@ -378,33 +517,27 @@
                 const isMoving = Math.abs(inputX) > 0.1 || Math.abs(inputZ) > 0.1;
 
                 if (isMoving) {
-                    const speed = 0.22;
+                    const speed = 0.2;
                     const moveAngle = Math.atan2(inputX, inputZ) + cameraAngleX;
                     
                     playerGroup.position.x += Math.sin(moveAngle) * speed;
                     playerGroup.position.z += Math.cos(moveAngle) * speed;
                     playerGroup.rotation.y = moveAngle + Math.PI;
 
-                    walkTime += 0.2;
-                    leftLeg.rotation.x = Math.sin(walkTime) * 0.6;
-                    rightLeg.rotation.x = -Math.sin(walkTime) * 0.6;
-                    leftArm.rotation.x = -Math.sin(walkTime) * 0.5;
-                    rightArm.rotation.x = Math.sin(walkTime) * 0.5;
+                    // אנימציית הליכה קלה (נדנוד עדין)
+                    playerGroup.position.y = Math.abs(Math.sin(clock.getElapsedTime() * 10)) * 0.12;
                 } else {
-                    leftLeg.rotation.x = 0; rightLeg.rotation.x = 0;
-                    leftArm.rotation.x = 0; rightArm.rotation.x = 0;
+                    playerGroup.position.y = 0;
                 }
 
-                playerGroup.position.y = 0;
-
-                // חישוב המצלמה
-                const camDistance = 14;
+                // מיקום מצלמה עוקבת
+                const camDistance = 10;
                 const camX = playerGroup.position.x + camDistance * Math.sin(cameraAngleX) * Math.cos(cameraAngleY);
-                const camY = playerGroup.position.y + camDistance * Math.sin(cameraAngleY) + 2;
+                const camY = playerGroup.position.y + camDistance * Math.sin(cameraAngleY) + 2.2;
                 const camZ = playerGroup.position.z + camDistance * Math.cos(cameraAngleX) * Math.cos(cameraAngleY);
 
                 camera.position.set(camX, camY, camZ);
-                camera.lookAt(playerGroup.position.x, playerGroup.position.y + 2.2, playerGroup.position.z);
+                camera.lookAt(playerGroup.position.x, playerGroup.position.y + 1.8, playerGroup.position.z);
 
                 const miniPlayer = document.getElementById('minimap-player');
                 if (miniPlayer) {
